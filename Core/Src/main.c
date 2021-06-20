@@ -50,6 +50,9 @@
 /* Variables for ADC conversion data */
 __IO uint16_t aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE]; /* ADC group regular conversion data */
 
+__IO uint32_t DWT_lastValue;
+__IO uint32_t DWT_delta;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -135,7 +138,8 @@ int main(void) {
 		LL_mDelay(3 * 1000);
 		LL_ADC_REG_StopConversion(ADC1);
 		LL_ADC_REG_StartConversion(ADC1);
-		LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_TEMPSENSOR_ADC1, LL_ADC_SAMPLINGTIME_2CYCLES_5);
+		LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_TEMPSENSOR_ADC1,
+				LL_ADC_SAMPLINGTIME_2CYCLES_5);
 		LL_ADC_REG_StartConversion(ADC1);
 
 		LED_Off();
@@ -143,11 +147,12 @@ int main(void) {
 		LL_mDelay(3 * 1000);
 		LL_ADC_REG_StopConversion(ADC1);
 		LL_ADC_REG_StartConversion(ADC1);
-		LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_TEMPSENSOR_ADC1, LL_ADC_SAMPLINGTIME_640CYCLES_5);
+		LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_TEMPSENSOR_ADC1,
+				LL_ADC_SAMPLINGTIME_640CYCLES_5);
 		LL_ADC_REG_StartConversion(ADC1);
 	}
-		/* USER CODE END WHILE */
-		/* USER CODE BEGIN 3 */
+	/* USER CODE END WHILE */
+	/* USER CODE BEGIN 3 */
 	// }
 	/* USER CODE END 3 */
 }
@@ -168,7 +173,7 @@ void SystemClock_Config(void) {
 
 	LL_RCC_HSI_SetCalibTrimming(64);
 	LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSI, LL_RCC_PLLM_DIV_4, 85,
-			LL_RCC_PLLR_DIV_2);
+	LL_RCC_PLLR_DIV_2);
 	LL_RCC_PLL_EnableDomain_SYS();
 	LL_RCC_PLL_Enable();
 	/* Wait till PLL is ready */
@@ -248,6 +253,9 @@ void LED_Blinking(uint32_t Period) {
  */
 void AdcDmaTransferComplete_Callback() {
 
+	// marker for tracking speed of conversion
+	DWT_delta = DWT->CYCCNT - DWT_lastValue;
+	DWT_lastValue = DWT->CYCCNT;
 }
 
 /**
